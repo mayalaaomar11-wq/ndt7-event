@@ -11,6 +11,28 @@ function newId() {
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+
+  // Diagnostic: open /api/register?check=1 in the browser to see what is wrong
+  if (req.method === "GET" && req.query && req.query.check === "1") {
+    const U = process.env.SUPABASE_URL;
+    const K = process.env.SUPABASE_SERVICE_KEY;
+    const out = {
+      hasUrl: !!U,
+      hasKey: !!K,
+      urlLooksRight: !!U && /^https:\/\/[a-z0-9]+\.supabase\.co\/?$/.test(U),
+      keyType: !K ? null : K.startsWith("sb_secret_") ? "secret (ok)" : K.startsWith("sb_publishable_") ? "publishable (WRONG key)" : K.startsWith("eyJ") ? "jwt" : "unknown",
+    };
+    if (U && K) {
+      try {
+        const hh = { apikey: K };
+        if (K.startsWith("eyJ")) hh.Authorization = "Bearer " + K;
+        const r = await fetch(U.replace(/\/$/, "") + "/rest/v1/registrations?select=ticket_id&limit=1", { headers: hh });
+      }
+    }
+    res.status(200).json(out);
+    return;
+  }
+
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
     return;
