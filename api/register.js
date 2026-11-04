@@ -1,6 +1,8 @@
 const crypto = require("crypto");
 
 const PACKAGES = ["Package 1", "Package 2", "Package 3"];
+const YEARS = ["First year", "Second year", "Third year", "Fourth year", "Fifth year", "Graduate", "Other"];
+const HEARD = ["Facebook", "Instagram", "LinkedIn", "WhatsApp group", "A friend", "University", "Other"];
 
 function newId() {
   const a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -54,11 +56,21 @@ module.exports = async function handler(req, res) {
   const email = String(b.email || "").trim().toLowerCase().slice(0, 120);
   const phone = String(b.phone || "").trim().slice(0, 30);
   const pkg = String(b.package || "");
+  const university = String(b.university || "").trim().slice(0, 100);
+  const faculty = String(b.faculty || "").trim().slice(0, 100);
+  const department = String(b.department || "").trim().slice(0, 100);
+  const year = String(b.academic_year || "");
+  const heard = String(b.heard_from || "");
+  const expectations = String(b.expectations || "").trim().slice(0, 500);
   if (
     name.length < 3 ||
     !/^\S+@\S+\.\S+$/.test(email) ||
     phone.replace(/\D/g, "").length < 8 ||
-    !PACKAGES.includes(pkg)
+    !PACKAGES.includes(pkg) ||
+    university.length < 2 ||
+    faculty.length < 2 ||
+    !YEARS.includes(year) ||
+    !HEARD.includes(heard)
   ) {
     res.status(400).json({ error: "Invalid data" });
     return;
@@ -69,20 +81,32 @@ module.exports = async function handler(req, res) {
   const base = URL.replace(/\/$/, "") + "/rest/v1/registrations";
 
   try {
-    // Same email registered before: return the same ticket
+    // Same email registered before: update the details and the package, keep the same ID
     const f = await fetch(
-      base + "?email=eq." + encodeURIComponent(email) + "&select=ticket_id,name,package_name&limit=1",
+      base + "?email=eq." + encodeURIComponent(email) + "&select=ticket_id,package_name,paid&limit=1",
       { headers: h }
     );
     if (!f.ok) throw new Error("lookup " + f.status);
     const found = await f.json();
     if (found.length) {
-      res.status(200).json({
-        ticketId: found[0].ticket_id,
-        name: found[0].name,
-        package: found[0].package_name,
-        existing: true,
+      const old = found[0];
+      let finalPkg = pkg;
+      let note = "";
+      if (old.paid && old.package_name !== pkg) {
+        finalPkg = old.package_name;
+        note = "Your payment was already confirmed for " + old.package_name + ". Contact the team to change your package.";
+      }
+      const u = await fetch(base + "?email=eq." + encodeURIComponent(email), {
+        method: "PATCH",
+        headers: { ...h, Prefer: "return=minimal" },
+        body: JSON.stringify({
+          name, phone, package_name: finalPkg, university, faculty,
+          department: department || null, academic_year: year, heard_from: heard,
+          expectations: expectations || null,
+        }),
       });
+      if (!u.ok) throw new Error("update " + u.status);
+      res.status(200).json({ ticketId: old.ticket_id, name, package: finalPkg, existing: true, note });
       return;
     }
 
@@ -91,7 +115,11 @@ module.exports = async function handler(req, res) {
       const r = await fetch(base, {
         method: "POST",
         headers: { ...h, Prefer: "return=minimal" },
-        body: JSON.stringify({ ticket_id: ticketId, name, email, phone, package_name: pkg }),
+        body: JSON.stringify({
+          ticket_id: ticketId, name, email, phone, package_name: pkg, university, faculty,
+          department: department || null, academic_year: year, heard_from: heard,
+          expectations: expectations || null,
+        }),
       });
       if (r.ok) {
         res.status(200).json({ ticketId, name, package: pkg });
