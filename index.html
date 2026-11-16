@@ -74,7 +74,7 @@ $("er").textContent="";b.disabled=true;b.textContent="Please wait…";
 try{const r=await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:n,email:e,phone:p,package:t,university:u,faculty:f,department:dp,academic_year:yr,heard_from:hf,expectations:ex})});const d=await r.json();if(!r.ok||!d.ticketId)throw new Error(d.error||"failed");
 cur={id:d.ticketId,name:d.name||n,tier:d.package||t};
 $("note").textContent=d.note||"";
-$("form").style.display="none";$("tiers").style.display="none";$("ticket").style.display="block";$("tid").textContent=cur.id;showPay();draw()}
+$("form").style.display="none";$("tiers").style.display="none";$("ticket").style.display="block";$("tid").textContent=cur.id;showPay();draw();setTimeout(()=>$("register").scrollIntoView({behavior:"smooth",block:"start"}),80)}
 catch(x){$("er").textContent="Could not complete your registration. Please check your connection and try again.";b.disabled=false;b.textContent="Get my ticket"}};
 $("ph2").onchange=ev=>{const f=ev.target.files[0];if(!f)return;const im=new Image();$("pe").textContent="";im.onload=()=>{photo=im;draw()};im.onerror=()=>{$("pe").textContent="This photo format isn’t supported. Please choose a JPG or PNG photo."};im.src=URL.createObjectURL(f)};
 function rr(x,X,y,w,h,r){X.beginPath();X.moveTo(x+r,y);X.arcTo(x+w,y,x+w,y+h,r);X.arcTo(x+w,y+h,x,y+h,r);X.arcTo(x,y+h,x,y,r);X.arcTo(x,y,x+w,y,r);X.closePath()}
