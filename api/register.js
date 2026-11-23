@@ -1,5 +1,9 @@
 const crypto = require("crypto");
 
+// Set to false when the event is full. New people are turned away,
+// but anyone who already registered can still get their ticket.
+const REGISTRATION_OPEN = false;
+
 const PACKAGES = ["Package 1", "Package 2", "Package 3"];
 const YEARS = ["First year", "Second year", "Third year", "Fourth year", "Fifth year", "Graduate", "Other"];
 const HEARD = ["Facebook", "Instagram", "LinkedIn", "WhatsApp group", "A friend", "University", "Other"];
@@ -13,6 +17,11 @@ function newId() {
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
+
+  if (req.method === "GET" && req.query && req.query.status === "1") {
+    res.status(200).json({ open: REGISTRATION_OPEN });
+    return;
+  }
 
   // Diagnostic: open /api/register?check=1 in the browser to see what is wrong
   if (req.method === "GET" && req.query && req.query.check === "1") {
@@ -107,6 +116,11 @@ module.exports = async function handler(req, res) {
       });
       if (!u.ok) throw new Error("update " + u.status);
       res.status(200).json({ ticketId: old.ticket_id, name, package: finalPkg, existing: true, note });
+      return;
+    }
+
+    if (!REGISTRATION_OPEN) {
+      res.status(403).json({ closed: true, error: "Registration is closed" });
       return;
     }
 
