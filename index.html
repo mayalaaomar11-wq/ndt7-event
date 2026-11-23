@@ -30,7 +30,7 @@ footer{text-align:center;padding:30px;color:var(--mu);font-size:14px}
 
 <section id="register"><h2>Get your <b>ticket</b></h2><div class="steps" id="steps"><span class="on">1 Register</span><span>2 Ticket</span><span>3 ID</span><span>4 Payment</span></div>
 <p class="mu">Pick a package and enter your details. Everyone gets a ticket with a personal ID, whether they pay or not.</p>
-<div class="card" id="closed" style="display:none;text-align:center;margin-bottom:16px"><div class="p"><h3 style="margin:0 0 6px;color:var(--ac)">Registration is closed</h3><p class="mu" style="margin:0 0 12px">The event is full. Thank you for your interest, we’ll see you at another event!</p><button class="btn ghost" id="showform">I already registered</button></div></div>
+<div class="card" id="closed" style="display:none;text-align:center;margin-bottom:16px"><div class="p"><h3 style="margin:0 0 6px;color:var(--ac)">Registration is closed</h3><p class="mu" style="margin:0 0 12px">The event is full. Thank you for your interest, we’ll see you at another event!</p></div></div>
 <div class="grid" id="tiers">
 <label class="tier"><input type="radio" name="tier" value="Package 1" checked><h3>Package 1</h3><div class="pr">Free</div><ul><li>Attendance</li><li>E-certificate</li></ul></label>
 <label class="tier"><input type="radio" name="tier" value="Package 2"><h3>Package 2</h3><div class="pr">70 EGP</div><ul><li>Attendance</li><li>Meal</li><li>E-certificate</li></ul></label>
@@ -106,6 +106,5 @@ Don’t miss out! Registration is now open. Secure your spot and be part of the 
 #MA_27
 #Innovation_Is_Our_Alloy
 #The_Most_Outstanding_Chapter`;copy(t,$("cp"),"Caption copied")};
-fetch("/api/register?status=1").then(r=>r.json()).then(d=>{if(d&&d.open===false){$("tiers").style.display="none";$("form").style.display="none";$("steps").style.display="none";$("closed").style.display="block"}}).catch(()=>{});
-$("showform").onclick=()=>{$("closed").style.display="none";$("tiers").style.display="";$("form").style.display="";$("steps").style.display="";$("er").textContent=""};
+fetch("/api/register?status=1").then(r=>r.json()).then(d=>{if(d&&d.open===false){$("tiers").style.display="none";$("form").style.display="none";$("steps").style.display="none";$("closed").style.display="block";document.querySelectorAll('.hero a[href="#register"]').forEach(a=>a.style.display="none")}}).catch(()=>{});
 </script></body></html>
