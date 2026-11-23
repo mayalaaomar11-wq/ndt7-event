@@ -99,6 +99,11 @@ module.exports = async function handler(req, res) {
     const found = await f.json();
     if (found.length) {
       const old = found[0];
+      if (!REGISTRATION_OPEN) {
+        // Closed: return the existing ticket only, never change anything
+        res.status(200).json({ ticketId: old.ticket_id, name: old.name, package: old.package_name, existing: true });
+        return;
+      }
       let finalPkg = pkg;
       let note = "";
       if (old.paid && old.package_name !== pkg) {
